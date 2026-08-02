@@ -25,7 +25,7 @@ resource "helm_release" "rancher" {
   chart            = "rancher"
   namespace        = "cattle-system"
   create_namespace = true
-  version          = "2.8.2"
+#   version          = "2.8.2"
 
   set {
     name  = "hostname"
