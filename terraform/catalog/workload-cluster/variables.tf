@@ -1,14 +1,25 @@
-variable "zone" {
+variable "machine_config_id" {
   type        = string
-  description = "GCP зона для размещения GKE кластера и Spot-нод (например, europe-west1-b)"
+  description = "machine_config_id"
 }
 
-variable "network_name" {
+variable "rancher_url" {
+  description = "The base URL of the Rancher server"
   type        = string
-  description = "Имя VPC сети (передается из модуля VPC)"
 }
 
-variable "subnet_name" {
+variable "rancher_token" {
+  description = "The API token for the Rancher server"
   type        = string
-  description = "Имя подсети (передается из модуля VPC)"
+  sensitive   = true
+}
+
+variable "gke_endpoint" {
+  type    = string
+  default = "127.0.0.1"
+}
+
+variable "gke_ca_certificate" {
+  type    = string
+  default = ""
 }

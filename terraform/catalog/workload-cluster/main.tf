@@ -1,36 +1,33 @@
-terraform {
-  required_providers {
-    rancher2 = {
-      source  = "rancher/rancher2"
-      version = "~> 3.0"
+# 1. Define the Cluster as a Custom Cluster (No machine pools or node drivers required)
+resource "rancher2_cluster_v2" "workload" {
+  name               = "workload-prod-cluster"
+  kubernetes_version = "v1.28.3+k3s1"
+}
+
+# 2. Wait for the cluster to generate its kubeconfig
+data "rancher2_cluster_v2" "workload_status" {
+  name = rancher2_cluster_v2.workload.name
+}
+
+# 3. Create the cluster secret in the ArgoCD namespace on your Hub cluster
+resource "kubernetes_secret_v1" "argocd_cluster_registration" {
+  metadata {
+    name      = "cluster-workload-prod"
+    namespace = "argocd"
+    labels = {
+      "argocd.argoproj.io/secret-type" = "cluster"
     }
   }
-}
 
+  data = {
+    name   = rancher2_cluster_v2.workload.name
+    server = yamldecode(data.rancher2_cluster_v2.workload_status.kube_config)["clusters"][0]["cluster"]["server"]
 
-resource "rancher2_cluster" "downstream" {
-  name        = "my-rancher-managed-cluster"
-  description = "Cluster created and managed via Rancher"
-
-  gke_config_v2 {
-    project_id     = "teragrunt88"
-    region         = "europe-west1"
-    cluster_name   = "rancher-downstream-spot"
-
-    # Configure your node pools, VPC networks, etc. here
+    config = jsonencode({
+      bearerToken = data.rancher2_cluster_v2.workload_status.kube_config
+      tlsClientConfig = {
+        insecure = true
+      }
+    })
   }
-}
-
-
-resource "rancher2_cluster" "custom_cluster" {
-  name        = "rancher-hybrid-cluster"
-  description = "Cluster with dedicated manager and worker nodes"
-  rke2_config {
-    version = "v1.28.5+rke2r1"
-  }
-}
-
-# Create a registration token to get the join commands
-resource "rancher2_cluster_registration_token" "token" {
-  cluster_id = rancher2_cluster.custom_cluster.id
 }

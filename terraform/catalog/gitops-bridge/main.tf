@@ -17,10 +17,13 @@ resource "kubernetes_manifest" "wordpress_argocd_app" {
         targetRevision = "HEAD"
         path           = "."
       }
-      destination = {
-        server    = "https://kubernetes.default.svc"
-        namespace = "wordpress"
-      }
+
+     destination = {
+  # Target the new cluster by the name registered in ArgoCD
+         name      = "workload-cluster"
+         namespace = "wordpress"
+     }
+
       syncPolicy = {
         automated = {
           prune    = true

@@ -29,7 +29,7 @@ resource "helm_release" "rancher" {
 
   set {
     name  = "hostname"
-    value = "rancher.local.test"
+    value = var.rancher_hostname
   }
   set {
     name  = "ingress.tls.source"
@@ -37,10 +37,25 @@ resource "helm_release" "rancher" {
   }
   set_sensitive {
     name  = "bootstrapPassword"
-    value = "admin1234"
+    value = var.rancher_admin_password
   }
   set {
     name  = "replicas"
     value = "1" # Save resources for local testing
   }
+}
+
+
+provider "rancher2" {
+  alias     = "bootstrap"
+  api_url   = "https://localhost:8443"
+  bootstrap = true
+  insecure  = true
+}
+
+resource "rancher2_bootstrap" "admin" {
+  depends_on = [helm_release.rancher]
+  provider       = rancher2.bootstrap
+  password       = var.rancher_admin_password
+  initial_password = var.rancher_admin_password
 }
