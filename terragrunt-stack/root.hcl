@@ -10,9 +10,9 @@ locals {
 remote_state {
   backend = "gcs"
   config = {
-    project  = "teragrunt88"
-    location = "europe-west1"
-    bucket   = "teragrunt88-tfstate-bucket" # Must be globally unique in GCP
+    project  = local.project_id
+    location = local.region
+    bucket   = "{${local.project_id}" # Must be globally unique in GCP
     prefix   = "${path_relative_to_include()}/terraform.tfstate"
   }
   generate = {
