@@ -1,5 +1,6 @@
 locals {
   env_vars   = read_terragrunt_config(find_in_parent_folders("env.hcl"))
+  environment =local.env_vars.locals.environment
   project_id = local.env_vars.locals.project_id
   region     = local.env_vars.locals.region
   raw_ca_cert = local.env_vars.locals.raw_ca_cert
@@ -12,7 +13,7 @@ remote_state {
   config = {
     project  = local.project_id
     location = local.region
-    bucket   = "{${local.project_id}" # Must be globally unique in GCP
+    bucket   = "${local.project_id}-tfstate-bucket" # Must be globally unique in GCP
     prefix   = "${path_relative_to_include()}/terraform.tfstate"
   }
   generate = {
@@ -32,25 +33,24 @@ remote_state {
 // }
 // EOF
 // }
-//
+
 // # Automatically enable required GCP APIs before provisioning
-// generate "enable_apis" {
-//   path      = "enable_apis.tf"
-//   if_exists = "overwrite_terragrunt"
-//   contents  = <<EOF
-// resource "google_project_service" "compute_api" {
-//   project            = "${local.project_id}"
-//   service            = "compute.googleapis.com"
-//   disable_on_destroy = false
-// }
-//
-// resource "google_project_service" "container_api" {
-//   project            = "${local.project_id}"
-//   service            = "container.googleapis.com"
-//   disable_on_destroy = false
-// }
-// EOF
-// }
+    generate "enable_apis" {
+      path      = "enable_apis.tf"
+      if_exists = "overwrite_terragrunt"
+      contents  = <<EOF
+    resource "google_project_service" "compute_api" {
+      project            = "${local.project_id}"
+      service            = "compute.googleapis.com"
+      disable_on_destroy = false
+    }
+    resource "google_project_service" "container_api" {
+      project            = "${local.project_id}"
+      service            = "container.googleapis.com"
+      disable_on_destroy = false
+    }
+    EOF
+    }
 //
 // # Store each unit's state in Google Cloud Storage
 // remote_state {

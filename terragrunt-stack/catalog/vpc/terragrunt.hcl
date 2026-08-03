@@ -7,15 +7,16 @@ terraform {
 }
 
 inputs = {
-  project_id = "teragrunt88"
-  region     = "europe-west1"
+    project_id = "teragrunt88"
+    region     = "europe-west1"
 }
+
 
 generate "provider" {
   path      = "provider.tf"
   if_exists = "overwrite"
   contents  = <<EOF
-provider "google" {
+  provider "google" {
   project = "teragrunt88"
   region  = "europe-west1"
 }

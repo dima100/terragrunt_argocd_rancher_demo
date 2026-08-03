@@ -2,7 +2,7 @@
 
 locals {
   env_vars = read_terragrunt_config(find_in_parent_folders("env.hcl"))
-
+  environment = local.env_vars.locals.environment
   raw_ca_cert = local.env_vars.locals.raw_ca_cert
   project_id  = local.env_vars.locals.project_id
   region      = local.env_vars.locals.region
@@ -14,18 +14,13 @@ locals {
 unit "vpc" {
   source = "${get_repo_root()}/terragrunt-stack/catalog/vpc"
   path   = "vpc"
+
 }
 
 unit "gke" {
   source = "${get_repo_root()}/terragrunt-stack/catalog/gke-cluster"
   path   = "gke-cluster"
   dependencies = ["vpc"]
-  inputs = {
-    project      = "teragrunt88"
-    zone         = "europe-west1-b"
-    network_name = unit.vpc.outputs.network_name
-    subnet_name  = unit.vpc.outputs.subnet_name
-  }
 }
 
 
